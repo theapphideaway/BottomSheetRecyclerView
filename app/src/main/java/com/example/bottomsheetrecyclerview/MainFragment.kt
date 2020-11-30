@@ -11,12 +11,12 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 
 class MainFragment : Fragment() {
-
-    val SELECTED_WORD = "SELECTED_WORD"
 
     private lateinit var selectedWordTV : TextView
 
@@ -25,32 +25,18 @@ class MainFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_main, container, false).apply{
+            val bottomSheet = BottomSheetFragment()
             val showBottomSheetBTN = findViewById<Button>(R.id.show_bottom_sheet_btn)
             selectedWordTV = findViewById(R.id.selected_word_tv)
             showBottomSheetBTN.setOnClickListener {
-                BottomSheetFragment().show(requireActivity().supportFragmentManager, "words")
+                bottomSheet.show(requireActivity().supportFragmentManager, "words")
             }
+            selectedWordTV.text = "Select a Word"
 
+            bottomSheet.selectedWord.observe(viewLifecycleOwner, Observer{
+                selectedWordTV.text = it
+            })
         }
     }
 
-    private val someBroadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            val selectedWord = intent!!.getStringExtra(SELECTED_WORD)
-            selectedWordTV.text = selectedWord
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        LocalBroadcastManager.getInstance(context!!).registerReceiver(
-            someBroadcastReceiver,
-            IntentFilter(SELECTED_WORD)
-        )
-    }
-
-    override fun onPause() {
-        LocalBroadcastManager.getInstance(context!!).unregisterReceiver(someBroadcastReceiver)
-        super.onPause()
-    }
 }
